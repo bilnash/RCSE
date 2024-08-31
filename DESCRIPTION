@@ -5,7 +5,10 @@ Version: 0.1.0
 Author: Bilal ELMSILI <bilal_elmsili@um5.ac.ma>
 Maintainer: Bilal ELMSILI <bilal_elmsili@um5.ac.ma>
 Description: Load and Manage Data from Casablanca Stock Exchange (Morocco).
+Depends: R (>= 4.0.0)
+Imports: dplyr, httr, jsonlite, lubridate, magrittr, purrr, tibble
 License: GPL (>= 2)
 Encoding: UTF-8
 LazyData: true
 URL: https://github.com/bilnash/RCSE
+RoxygenNote: 7.2.3
