@@ -17,25 +17,59 @@
 ## 02110-1301, USA
 ################################################################################
 
+#' Find the Internal ID of a Symbol
+#'
+#' @param symbol A character string representing the symbol of the stock.
+#'
+#' @importFrom httr parse_url
+#' @importFrom stringr str_glue
+#' @importFrom jsonlite fromJSON
+#'
+find_symbol_id <- function(symbol) {
+    url <- httr::parse_url("https://www.casablanca-bourse.com/")
+    url$path <- stringr::str_glue(
+        "_next/data/6lgwZ8lO-4XZP6GZNwHjq/en/live-market/instruments/{symbol}.json"
+    )
+    url$query <- list(
+        slug = "live-market",
+        slug = "instruments",
+        slug = symbol
+    )
+    symbol_json <- jsonlite::fromJSON(httr::build_url(url))
+    symbol_id <- symbol_json$pageProps$node$field_vactory_paragraphs %>%
+        .$field_vactory_component %>% .$widget_data %>% .[[1]] %>%
+        jsonlite::fromJSON() %>% .$components %>% .$collection %>%
+        .$filters %>% .$filter %>% .$drupal_internal__id
+    return(symbol_id)
+}
 
+
+#' Construct URL for Historical Data
+#'
+#' @param symbol A character string representing the symbol of the stock.
+#' @param start_date A character string representing the start date of the data.
+#' @param end_date A character string representing the end date of the data.
+#'
+#' @note The format of start_date and end_date should be "YYYY-MM-DD".
 #'
 #' @importFrom httr parse_url build_url
 #'
-build_url <- function(symbol_code, start_date, end_date) {
+url_constructor <- function(symbol, start_date, end_date) {
+    symbol_id <- find_symbol_id(symbol)
     url <- httr::parse_url("https://api.casablanca-bourse.com/")
     url$path <- "en/api/bourse_data/instrument_history"
     url$query <- list(
         `fields[instrument_history]` = paste("symbol", "created",
-                                              "openingPrice", "coursCourant",
-                                              "highPrice", "lowPrice",
-                                              "cumulTitresEchanges",
-                                              "cumulVolumeEchange",
-                                              "totalTrades", "capitalisation",
-                                              "coursAjuste", "closingPrice",
-                                              "ratioConsolide", sep = ","),
+                                             "openingPrice", "coursCourant",
+                                             "highPrice", "lowPrice",
+                                             "cumulTitresEchanges",
+                                             "cumulVolumeEchange",
+                                             "totalTrades", "capitalisation",
+                                             "coursAjuste", "closingPrice",
+                                             "ratioConsolide", sep = ","),
         `fields[instrument]` = paste("symbol", "libelleFR", "libelleAR",
-                                      "libelleEN", "emetteur_url",
-                                      "instrument_url", sep = ","),
+                                     "libelleEN", "emetteur_url",
+                                     "instrument_url", sep = ","),
         `fields[taxonomy_term--bourse_emetteur]` = "name",
         include = "symbol",
         `sort[date-seance][direction]` = "DESC",
@@ -44,7 +78,7 @@ build_url <- function(symbol_code, start_date, end_date) {
         `filter[filter-historique-instrument-emetteur][condition][path]` =
             "symbol.meta.drupal_internal__target_id",
         `filter[filter-historique-instrument-emetteur][condition][value]` =
-            symbol_code,
+            symbol_id,
         `filter[filter-historique-instrument-emetteur][condition][operator]` =
             "=",
         `filter[instrument-history-class][condition][path]` =
@@ -61,5 +95,5 @@ build_url <- function(symbol_code, start_date, end_date) {
         `page[offset]` = "0",
         `page[limit]` = "50"
     )
-  return(httr::build_url(url))
+    return(httr::build_url(url))
 }

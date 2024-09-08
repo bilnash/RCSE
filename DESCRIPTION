@@ -6,7 +6,7 @@ Author: Bilal ELMSILI <bilal_elmsili@um5.ac.ma>
 Maintainer: Bilal ELMSILI <bilal_elmsili@um5.ac.ma>
 Description: Load and Manage Data from Casablanca Stock Exchange (Morocco).
 Depends: R (>= 4.0.0)
-Imports: dplyr, httr, jsonlite, lubridate, magrittr, purrr, tibble
+Imports: dplyr, httr, jsonlite, lubridate, magrittr, purrr, tibble, stringr
 License: GPL (>= 2)
 Encoding: UTF-8
 LazyData: true

@@ -37,37 +37,14 @@
 #' @export
 #'
 get_symbols <- function() {
-    url <- paste0("https://api.casablanca-bourse.com/",
-                  "en/api/paragraph/vactory_component/",
-                  "89109b3a-143e-40a2-b259-b0934fa5da98")
+    url <- "https://api.casablanca-bourse.com/fr/api/node/instrument"
     symbols_json <- jsonlite::fromJSON(url)
-    symbols_json <- symbols_json$data$attributes$field_vactory_component$widget_data
-    symbols_uuid <- jsonlite::fromJSON(symbols_json)$instruments$uuid
-    symbols_df <- symbols_uuid %>%
-        purrr::map_df(
-            function(symbol_uuid) {
-                symbol_url <- paste0("https://api.casablanca-bourse.com/",
-                                     "en/api/bourse_data/instrument/",
-                                     symbol_uuid)
-                symbol_json <- jsonlite::fromJSON(symbol_url)
-                symbol_df <- tibble::tibble(
-                    name = symbol_json$data$attributes$libelleFR,
-                    id = symbol_json$data$attributes$drupal_internal__id,
-                    isin = symbol_json$data$attributes$codeISIN,
-                    ipo_date = symbol_json$data$attributes$dateIntroduction,
-                    shares_count = symbol_json$data$attributes$nombreTitres,
-                    ipo_price = symbol_json$data$attributes$coursIntroduction,
-                    nominal_value = symbol_json$data$attributes$valeurNominale,
-                )
-                return(symbol_df)
-            }, .progress = TRUE
+    symbols_df <- symbols_json$data$attributes$field_instrument_list %>%
+        .[[1]] %>% tibble::as_tibble() %>%
+        dplyr::rename(symbol = url) %>%
+        dplyr::mutate(symbol = stringr::str_remove(symbol,
+                                                   "/fr/live-market/instruments/")
         )
-    symbols_df %>% dplyr::mutate(
-        ipo_date = lubridate::as_date(ipo_date),
-        ipo_price = as.numeric(ipo_price),
-        nominal_value = as.numeric(nominal_value),
-        shares_number = as.integer(shares_number)
-    )
     return(symbols_df)
 }
 
