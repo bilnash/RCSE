@@ -24,6 +24,7 @@
 #' @importFrom httr parse_url
 #' @importFrom stringr str_glue
 #' @importFrom jsonlite fromJSON
+#' @importFrom xml2 read_html xml_find_first as_list
 #'
 find_symbol_id <- function(symbol) {
     build_id <- xml2::read_html(
