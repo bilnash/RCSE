@@ -26,9 +26,17 @@
 #' @importFrom jsonlite fromJSON
 #'
 find_symbol_id <- function(symbol) {
+    build_id <- xml2::read_html(
+        stringr::str_glue(
+            "https://www.casablanca-bourse.com/fr/live-market/instruments/{symbol}"
+        )) %>%
+        xml2::xml_find_first(xpath = "//*[@id='__NEXT_DATA__']") %>%
+        xml2::as_list() %>%
+        .[[1]] %>%
+        jsonlite::fromJSON() %>% .$buildId
     url <- httr::parse_url("https://www.casablanca-bourse.com/")
     url$path <- stringr::str_glue(
-        "_next/data/6lgwZ8lO-4XZP6GZNwHjq/en/live-market/instruments/{symbol}.json"
+        "_next/data/{build_id}/en/live-market/instruments/{symbol}.json"
     )
     url$query <- list(
         slug = "live-market",
