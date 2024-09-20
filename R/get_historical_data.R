@@ -106,3 +106,51 @@ url_constructor <- function(symbol, start_date, end_date) {
     )
     return(httr::build_url(url))
 }
+
+
+#' Get Historical Data
+#'
+#' Retrieves historical data of a stock from the Casablanca Stock Exchange.
+#'
+#' @param symbol A character string representing the symbol of the stock.
+#' @param start_date A character string representing the start date of the data.
+#' @param end_date A character string representing the end date of the data.
+#'
+#' @note The format of start_date and end_date should be "YYYY-MM-DD".
+#'
+#' @return A data frame containing the historical data of the stock.
+#'
+#' @export
+#'
+get_historical_data <- function(symbol, start_date, end_date) {
+    url <- url_constructor(symbol, start_date, end_date)
+    hist_data <- tibble::tibble()
+    while(!is.null(url)) {
+        json_data <- jsonlite::fromJSON(url)
+        df_data <- tibble::tibble(
+            symbol = json_data$included$attributes$libelleEN,
+            date = as.Date(json_data$data$attributes$created),
+            open = as.numeric(json_data$data$attributes$openingPrice),
+            high = as.numeric(json_data$data$attributes$highPrice),
+            low = as.numeric(json_data$data$attributes$lowPrice),
+            close = as.numeric(json_data$data$attributes$closingPrice),
+            adjusted = as.numeric(json_data$data$attributes$coursAjuste),
+            quantity_exchanged = as.integer(
+                json_data$data$attributes$cumulTitresEchanges),
+            volume = as.numeric(json_data$data$attributes$cumulVolumeEchange),
+            total_trades = as.integer(json_data$data$attributes$totalTrades),
+            capitalisation = as.numeric(json_data$data$attributes$capitalisation),
+        )
+        hist_data <- dplyr::bind_rows(hist_data, df_data)
+        url <- json_data$links$`next`$href
+    }
+
+    return(hist_data)
+}
+
+
+
+
+
+
+
