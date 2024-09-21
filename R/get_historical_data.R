@@ -107,6 +107,71 @@ url_constructor <- function(symbol, start_date, end_date) {
     return(httr::build_url(url))
 }
 
+#' Parse Date
+#'
+#' Parse start_date and end_date in the correct format.
+#'
+#' @param date A character string representing the date.
+#'
+#' @return A date object.
+#'
+#' @importFrom lubridate parse_date_time
+#' @importFrom magrittr '%>%'
+#'
+#'
+parse_date <- function(date) {
+
+    tryCatch({
+        date <- lubridate::parse_date_time(date,
+                                           orders = c("ymd", "dmy", "mdy")) %>%
+            as.Date()
+    }, warning = function(w) {
+        stop("Invalid date format. Valid formats are:
+             'YYYY-MM-DD' or 'MM-DD-YYYY' or 'DD-MM-YYYY'.")
+    })
+
+    return(date)
+}
+
+#' Validate Dates
+#'
+#' Check if start_date and end_date are valid.
+#'
+#' @param start_date A date object representing the start date.
+#' @param end_date A date object representing the end date.
+#'
+#' @return TRUE if the dates are valid.
+#'
+#' @importFrom lubridate is.Date years
+#'
+#'
+validate_dates <- function(start_date, end_date) {
+
+    stopifnot(lubridate::is.Date(start_date), lubridate::is.Date(end_date))
+
+    if (start_date > Sys.Date() | end_date > Sys.Date()) {
+        stop("Dates should not be in the future.")
+    }
+
+    if (start_date > end_date) {
+        stop("start_date should be before end_date.")
+    }
+
+    if (start_date < Sys.Date() - lubridate::years(3) &
+        end_date < Sys.Date() - lubridate::years(3)) {
+        warning(
+            "API returns only the previous 3 years. Requested Data might not be available."
+        )
+    } else if (start_date < Sys.Date() - lubridate::years(3)) {
+        warning(
+            "API returns only the previous 3 years. Requested Data might not be complete."
+        )
+    }
+
+    return(TRUE)
+
+}
+
 
 #' Get Historical Data
 #'
@@ -117,13 +182,37 @@ url_constructor <- function(symbol, start_date, end_date) {
 #' @param end_date A character string representing the end date of the data.
 #'
 #' @note The format of start_date and end_date should be "YYYY-MM-DD".
+#' @note Use the function get_symbols() to get the list of available symbols.
+#' @note The API returns only the previous 3 years of data.
 #'
 #' @return A data frame containing the historical data of the stock.
 #'
+#' @importFrom dplyr bind_rows
+#' @importFrom jsonlite fromJSON
+#' @importFrom tibble tibble
+#' @importFrom lubridate years days
+#'
 #' @export
 #'
-get_historical_data <- function(symbol, start_date, end_date) {
+get_historical_data <- function(symbol,
+                                start_date = Sys.Date() - lubridate::years(3),
+                                end_date = Sys.Date()) {
+
+    if(is.character(start_date)) {
+        start_date <- parse_date(start_date)
+    }
+
+    if(is.character(end_date)) {
+        end_date <- parse_date(end_date)
+    }
+
+    validate_dates(start_date, end_date)
+
+    start_date <- format(start_date, "%Y-%m-%d")
+    end_date <- format(end_date, "%Y-%m-%d")
+
     url <- url_constructor(symbol, start_date, end_date)
+
     hist_data <- tibble::tibble()
     while(!is.null(url)) {
         json_data <- jsonlite::fromJSON(url)
