@@ -21,7 +21,7 @@ knitr::opts_chunk$set(
 [![Project Status: WIP – Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip)
 <!-- badges: end -->
 
-The goal of RCSE is to ...
+The goal of RCSE is to provide an easy way to load and manage data from Casablanca Stock Exchange (Morocco). The package is still under development and will be updated regularly.
 
 ## Installation
 
@@ -34,4 +34,62 @@ devtools::install_github("bilnash/RCSE")
 
 ## Example
 
-This is a basic example which shows you how to solve a common problem: TODO
+### `get_symbols`
+
+The function `get_symbols` allows you to get the list of symbols available in the Casablanca Stock Exchange:
+
+```{r, include = TRUE}
+listed_symbols <- RCSE::get_symbols()
+```
+
+```{r, include = TRUE}
+head(listed_symbols)
+```
+
+### `get_historical_data`
+
+The function `get_historical_data` allows you to get the historical data of a given symbol. This function takes in three arguments: `symbol`, `start_date`, and `end_date`. 
+    
+If `start_date` and `end_date` are not provided, the function will return the historical data of the last 3 years (Casablanca Stock Exchange API limit is 3 years). 
+    
+Use the function `get_symbols` to get the list of symbols available in the Casablanca Stock Exchange.
+
+```{r, include = TRUE}
+atw_data <- RCSE::get_historical_data("ATW")
+```
+
+```{r, include = TRUE}
+dim(atw_data)
+```
+
+```{r, include = TRUE}
+head(atw_data)
+```
+
+```{r, include = TRUE}
+tail(atw_data)
+```
+
+Here is an example with a specific date range:
+
+```{r, include = TRUE}
+akt_data <- RCSE::get_historical_data("AKT", start_date = "2024-06-15", end_date = "2024-09-26")
+```
+
+```{r, include = TRUE}
+dim(akt_data)
+```
+
+```{r, include = TRUE}
+head(akt_data)
+```
+
+```{r, include = TRUE}
+tail(akt_data)
+```
+
+
+
+
+
+

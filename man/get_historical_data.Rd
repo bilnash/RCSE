@@ -4,11 +4,7 @@
 \alias{get_historical_data}
 \title{Get Historical Data}
 \usage{
-get_historical_data(
-  symbol,
-  start_date = Sys.Date() - lubridate::years(3),
-  end_date = Sys.Date()
-)
+get_historical_data(symbol, start_date = NULL, end_date = NULL)
 }
 \arguments{
 \item{symbol}{A character string representing the symbol of the stock.}
