@@ -195,8 +195,16 @@ validate_dates <- function(start_date, end_date) {
 #' @export
 #'
 get_historical_data <- function(symbol,
-                                start_date = Sys.Date() - lubridate::years(3),
-                                end_date = Sys.Date()) {
+                                start_date = NULL,
+                                end_date = NULL) {
+
+    if(is.null(start_date)) {
+        start_date = Sys.Date() - lubridate::years(3)
+    }
+
+    if(is.null(end_date)) {
+        end_date = Sys.Date()
+    }
 
     if(is.character(start_date)) {
         start_date <- parse_date(start_date)
@@ -217,7 +225,7 @@ get_historical_data <- function(symbol,
     while(!is.null(url)) {
         json_data <- jsonlite::fromJSON(url)
         df_data <- tibble::tibble(
-            symbol = json_data$included$attributes$libelleEN,
+            #symbol = json_data$included$attributes$libelleEN,
             date = as.Date(json_data$data$attributes$created),
             open = as.numeric(json_data$data$attributes$openingPrice),
             high = as.numeric(json_data$data$attributes$highPrice),
