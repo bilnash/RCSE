@@ -25,7 +25,7 @@ The goal of RCSE is to provide an easy way to load and manage data from Casablan
 
 ## Installation
 
-You can install the development version of RCSE from [GitHub](https://github.com/) with:
+You can install the development version of RCSE from [GitHub](https://github.com/bilnash/RCSE) with:
 
 ``` r
 # install.packages("devtools")
@@ -66,10 +66,6 @@ dim(atw_data)
 head(atw_data)
 ```
 
-```{r, include = TRUE}
-tail(atw_data)
-```
-
 Here is an example with a specific date range:
 
 ```{r, include = TRUE}
@@ -82,10 +78,6 @@ dim(akt_data)
 
 ```{r, include = TRUE}
 head(akt_data)
-```
-
-```{r, include = TRUE}
-tail(akt_data)
 ```
 
 
