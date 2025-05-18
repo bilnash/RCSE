@@ -65,8 +65,10 @@ find_symbol_id <- function(symbol) {
 #'
 url_constructor <- function(symbol, start_date, end_date) {
     symbol_id <- find_symbol_id(symbol)
-    url <- httr::parse_url("https://api.casablanca-bourse.com/")
-    url$path <- "en/api/bourse_data/instrument_history"
+    #url <- httr::parse_url("https://api.casablanca-bourse.com/")
+    #url$path <- "en/api/bourse_data/instrument_history"
+    url <- httr::parse_url("https://www.casablanca-bourse.com/")
+    url$path <- "api/proxy/en/api/bourse_data/instrument_history"
     url$query <- list(
         `fields[instrument_history]` = paste("symbol", "created",
                                              "openingPrice", "coursCourant",
