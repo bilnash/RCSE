@@ -21,7 +21,7 @@
 #'
 #' @param symbol A character string representing the symbol of the stock.
 #'
-#' @importFrom httr parse_url
+#' @importFrom httr parse_url GET user_agent http_status content build_url
 #' @importFrom stringr str_glue
 #' @importFrom jsonlite fromJSON
 #' @importFrom xml2 read_html xml_find_first as_list
@@ -44,12 +44,23 @@ find_symbol_id <- function(symbol) {
         slug = "instruments",
         slug = symbol
     )
-    symbol_json <- jsonlite::fromJSON(httr::build_url(url))
+
+    response <- httr::GET(httr::build_url(url),
+                          httr::user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"))
+
+    if (httr::http_status(response)$category != "Success") {
+        stop("Failed to fetch data. Status: ", httr::http_status(response)$message)
+    }
+
+    symbol_json <- jsonlite::fromJSON(httr::content(response, as = "text", encoding = "UTF-8"))
+
     symbol_id <- symbol_json$pageProps$node$field_vactory_paragraphs %>%
         .$field_vactory_component %>% .$widget_data %>% .[[1]] %>%
         jsonlite::fromJSON() %>% .$components %>% .$collection %>%
         .$filters %>% .$filter %>% .$drupal_internal__id
+
     return(symbol_id)
+
 }
 
 
@@ -225,7 +236,15 @@ get_historical_data <- function(symbol,
 
     hist_data <- tibble::tibble()
     while(!is.null(url)) {
-        json_data <- jsonlite::fromJSON(url)
+        response <- httr::GET(url,
+                              httr::user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"))
+
+        if (httr::http_status(response)$category != "Success") {
+            stop("Failed to fetch data. Status: ", httr::http_status(response)$message)
+        }
+
+        json_data <- jsonlite::fromJSON(httr::content(response, as = "text", encoding = "UTF-8"))
+
         df_data <- tibble::tibble(
             #symbol = json_data$included$attributes$libelleEN,
             date = as.Date(json_data$data$attributes$created),
@@ -242,6 +261,12 @@ get_historical_data <- function(symbol,
         )
         hist_data <- dplyr::bind_rows(hist_data, df_data)
         url <- json_data$links$`next`$href
+        if(!is.null(url)) {
+            url <- stringr::str_replace(url,
+                                        "https://api.casablanca-bourse.com/en/",
+                                        "https://www.casablanca-bourse.com/api/proxy/en/")
+        }
+
     }
 
     return(hist_data)

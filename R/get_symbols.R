@@ -33,12 +33,23 @@
 #' @importFrom lubridate as_date
 #' @importFrom purrr map_df
 #' @importFrom magrittr %>%
+#' @importFrom httr GET user_agent http_status content
 #'
 #' @export
 #'
 get_symbols <- function() {
+
     url <- "https://api.casablanca-bourse.com/fr/api/node/instrument"
-    symbols_json <- jsonlite::fromJSON(url)
+
+    response <- httr::GET(url,
+                          httr::user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"))
+
+    if (httr::http_status(response)$category != "Success") {
+        stop("Failed to fetch data. Status: ", httr::http_status(response)$message)
+    }
+
+    symbols_json <- jsonlite::fromJSON(httr::content(response, as = "text", encoding = "UTF-8"))
+
     symbols_df <- symbols_json$data$attributes$field_instrument_list %>%
         .[[1]] %>% tibble::as_tibble() %>%
         dplyr::rename(symbol = url) %>%
